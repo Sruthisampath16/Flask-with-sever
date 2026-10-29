@@ -1,4 +1,4 @@
-import pscycopg2
+import psycopg2
 from unittest.mock import MagicMock
 
 from app import app
