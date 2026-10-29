@@ -13,7 +13,7 @@ def test_healthz():
     assert client.get("/healthz").status_code == 200
 
 def test_readyz_ok_when_db_reachable(monkeypatch):
-    monkeypatch.setattr(pscycopg2, "connect", lambda *a, **k: MagicMock())
+    monkeypatch.setattr(psycopg2, "connect", lambda *a, **k: MagicMock())
     client = app.test_client()
     assert client.get("/readyz").status_code == 200
 
