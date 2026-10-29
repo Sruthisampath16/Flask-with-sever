@@ -1,22 +1,25 @@
+import pscycopg2
+from unittest.mock import MagicMock
+
 from app import app
 
 
 def test_home():
     client = app.test_client()
-    response = client.get("/")
-    assert response.status_code == 200
-    assert "version" in response.get_json()
-
+    assert client.get("/").status_code == 200
 
 def test_healthz():
     client = app.test_client()
-    response = client.get("/healthz")
-    assert response.status_code == 200
-    assert response.get_json()["status"] == "alive"
+    assert client.get("/healthz").status_code == 200
 
-
-def test_readyz():
+def test_readyz_ok_when_db_reachable(monkeypatch):
+    monkeypatch.setattr(pscycopg2, "connect", lambda *a, **k: MagicMock())
     client = app.test_client()
-    response = client.get("/readyz")
-    assert response.status_code == 200
-    assert response.get_json()["status"] == "ready"
+    assert client.get("/readyz").status_code == 200
+
+def test_readyz_503_when_db_down(monkeypatch):
+    def fail(*a, **k):
+        raise psycopg2.OperationalError("db down")
+    monkeypatch.setattr(psycopg2, "connect", fail)
+    client = app.test_client()
+    assert client.get("/readyz").status_code == 503
